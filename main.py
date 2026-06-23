@@ -8,6 +8,9 @@ from app import image_to_ascii, ascii_to_image
 import shutil
 from PIL import Image
 from fastapi import HTTPException
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = FastAPI()
 
@@ -85,8 +88,8 @@ async def generate_ascii(background_tasks: BackgroundTasks, file: UploadFile = F
 
             img.save(path)
 
-        # remove_bg(path, subject_path)
-        shutil.copy(path, subject_path)
+        remove_bg(path, subject_path)
+        # shutil.copy(path, subject_path)
 
         #remove transparent padding
         img = Image.open(subject_path)

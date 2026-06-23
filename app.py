@@ -58,8 +58,8 @@ def image_to_ascii(image_path, width=120, charset="classic"):
                 row += " "
                 continue
 
-            idx = brightness * (len(chars) - 1) // 255
-            # idx = (255 - brightness) * (len(chars) - 1) // 255
+            # idx = brightness * (len(chars) - 1) // 255
+            idx = (255 - brightness) * (len(chars) - 1) // 255
             row += chars[idx]
 
         ascii_art.append(row)
