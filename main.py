@@ -63,10 +63,28 @@ async def generate_ascii(background_tasks: BackgroundTasks, file: UploadFile = F
     subject_path = f"uploads/{file_id}_subject.png"
     ascii_path = f"uploads/{file_id}_ascii.png"
 
+    MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
+
+    contents = await file.read()
+
+    if len(contents) > MAX_FILE_SIZE:
+        raise HTTPException(
+            status_code=400,
+            detail="File size must be under 5 MB"
+        )
+
     with open(path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+        buffer.write(contents)
 
     try:
+        with Image.open(path) as img:
+            max_dimension = 1000
+
+            if max(img.size) > max_dimension:
+                img.thumbnail((max_dimension, max_dimension))
+
+            img.save(path)
+
         remove_bg(path, subject_path)
 
         #remove transparent padding
