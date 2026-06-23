@@ -7,6 +7,7 @@ import os
 from app import image_to_ascii, ascii_to_image
 import shutil
 from PIL import Image
+from fastapi import HTTPException
 
 app = FastAPI()
 
@@ -20,11 +21,21 @@ def cleanup(*files):
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5173",
+        "https://ascii-image-generator-frontend-e7uzce6ev-priya-gurungs-projects.vercel.app",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+ALLOWED_TYPES = {
+    "image/png",
+    "image/jpeg",
+    "image/jpg",
+    "image/webp"
+}
 
 @app.get("/")
 async def health():
@@ -38,6 +49,12 @@ async def generate_ascii(background_tasks: BackgroundTasks, file: UploadFile = F
 
     file_id = str(uuid.uuid4())
 
+    if file.content_type not in ALLOWED_TYPES:
+        raise HTTPException(
+            status_code=400,
+            detail="Only PNG, JPG and WEBP images are allowed."
+        )
+    
     ext = os.path.splitext(file.filename)[1].lower()
     if not ext:
         ext = ".png"
@@ -49,22 +66,32 @@ async def generate_ascii(background_tasks: BackgroundTasks, file: UploadFile = F
     with open(path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    remove_bg(path, subject_path)
+    try:
+        remove_bg(path, subject_path)
 
-    #remove transparent padding
-    img = Image.open(subject_path)
-    bbox = img.getbbox()
-    if bbox:
-        img = img.crop(bbox)
-    img.save(subject_path)
+        #remove transparent padding
+        img = Image.open(subject_path)
+        bbox = img.getbbox()
 
-    #convert to ascii image
-    ascii_art = image_to_ascii(subject_path, width, charset)
+        if bbox:
+            img = img.crop(bbox)
+        img.save(subject_path)
 
-    ascii_to_image(
-        ascii_art,
-        ascii_path
-    )
+        #convert to ascii image
+        ascii_art = image_to_ascii(subject_path, width, charset)
+
+        ascii_to_image(
+            ascii_art,
+            ascii_path
+        )
+    
+    except Exception as e:
+        cleanup(path, subject_path, ascii_path)
+
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
 
     background_tasks.add_task(
         cleanup,
