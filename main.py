@@ -85,7 +85,8 @@ async def generate_ascii(background_tasks: BackgroundTasks, file: UploadFile = F
 
             img.save(path)
 
-        remove_bg(path, subject_path)
+        # remove_bg(path, subject_path)
+        shutil.copy(path, subject_path)
 
         #remove transparent padding
         img = Image.open(subject_path)
