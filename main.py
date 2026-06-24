@@ -51,6 +51,7 @@ async def generate_ascii(background_tasks: BackgroundTasks, file: UploadFile = F
     file_id = str(uuid.uuid4())
 
     if file.content_type not in ALLOWED_TYPES:
+        print("Content type:", file.content_type)
         raise HTTPException(
             status_code=400,
             detail="Only PNG, JPG and WEBP images are allowed."
@@ -64,15 +65,15 @@ async def generate_ascii(background_tasks: BackgroundTasks, file: UploadFile = F
     subject_path = f"uploads/{file_id}_subject.png"
     ascii_path = f"uploads/{file_id}_ascii.png"
 
-    MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
+    # MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
 
     contents = await file.read()
-
-    if len(contents) > MAX_FILE_SIZE:
-        raise HTTPException(
-            status_code=400,
-            detail="File size must be under 5 MB"
-        )
+    print("File Size:", len(contents))
+    # if len(contents) > MAX_FILE_SIZE:
+    #     raise HTTPException(
+    #         status_code=400,
+    #         detail="File size must be under 5 MB"
+    #     )
 
     with open(path, "wb") as buffer:
         buffer.write(contents)
