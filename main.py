@@ -86,19 +86,22 @@ async def generate_ascii(background_tasks: BackgroundTasks, file: UploadFile = F
 
             img.save(path)
 
-        remove_bg(path, subject_path)
+        success = remove_bg(path, subject_path)
         # shutil.copy(path, subject_path)
+        if success:
+            #remove transparent padding
+            img = Image.open(subject_path)
+            bbox = img.getbbox()
 
-        #remove transparent padding
-        img = Image.open(subject_path)
-        bbox = img.getbbox()
+            if bbox:
+                img = img.crop(bbox)
+            img.save(subject_path)
 
-        if bbox:
-            img = img.crop(bbox)
-        img.save(subject_path)
+            ascii_art = image_to_ascii(subject_path, width, charset)
 
-        #convert to ascii image
-        ascii_art = image_to_ascii(subject_path, width, charset)
+        else:
+            # Use original image directly
+            ascii_art = image_to_ascii(path, width, charset)
 
         ascii_to_image(
             ascii_art,
