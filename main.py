@@ -15,6 +15,7 @@ load_dotenv()
 app = FastAPI()
 
 os.makedirs("uploads", exist_ok=True)
+CORS_ORIGIN_PATHS = os.getenv("CORS_ORIGIN_PATHS")
 
 def cleanup(*files):
     for file in files:
@@ -24,10 +25,7 @@ def cleanup(*files):
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "https://ascii-image-generator-frontend-e7uzce6ev-priya-gurungs-projects.vercel.app",
-    ],
+    allow_origins=CORS_ORIGIN_PATHS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
